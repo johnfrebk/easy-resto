@@ -139,7 +139,7 @@ export default function TablesPage() {
           {currentOrder && (
             <div className="space-y-3">
               <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
-                <p className="text-center font-bold text-base mb-2">RestoPOS</p>
+                <p className="text-center font-bold text-base mb-2">Abby - RestoPOS</p>
                 <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-MX')}</p>
                 <div className="border-t border-dashed my-2" />
                 {currentOrder.items.map(i => (
