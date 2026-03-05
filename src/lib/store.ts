@@ -46,10 +46,12 @@ export interface DailySale {
 
 const TAX_RATE = 0.16; // 16% IVA
 
-function load<T>(key: string, fallback: T): T {
+function load<T>(key: string, fallback: T, saveIfMissing = false): T {
   try {
     const data = localStorage.getItem(key);
-    return data ? JSON.parse(data) : fallback;
+    if (data) return JSON.parse(data);
+    if (saveIfMissing) save(key, fallback);
+    return fallback;
   } catch { return fallback; }
 }
 
@@ -59,7 +61,7 @@ function save<T>(key: string, data: T) {
 
 // Products
 export function getProducts(): Product[] {
-  return load<Product[]>('pos_products', defaultProducts());
+  return load<Product[]>('pos_products', defaultProducts(), true);
 }
 
 export function saveProducts(products: Product[]) {
