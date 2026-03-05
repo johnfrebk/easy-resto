@@ -1,17 +1,22 @@
 import { useState, useEffect } from "react";
-import { getOrders, createOrder, getProducts, addItemToOrder, removeItemFromOrder, updateItemQty, closeOrder, TABLE_COUNT, type Order, type Product } from "@/lib/store";
-import { Plus, Minus, Trash2, X, Printer, Check } from "lucide-react";
+import { getOrders, createOrder, getProducts, addItemToOrder, removeItemFromOrder, updateItemQty, closeOrder, getTables, addTable, removeTable, type Order, type Product } from "@/lib/store";
+import { Plus, Minus, Trash2, X, Printer, Check, PlusCircle, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export default function TablesPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [tables, setTables] = useState<number[]>([]);
   const [selectedTable, setSelectedTable] = useState<number | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showBill, setShowBill] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
-  const refresh = () => setOrders(getOrders());
+  const refresh = () => {
+    setOrders(getOrders());
+    setTables(getTables());
+  };
   useEffect(() => { refresh(); }, []);
 
   const openOrders = orders.filter(o => o.status === 'open');
@@ -19,12 +24,30 @@ export default function TablesPage() {
   const currentOrder = selectedTable !== null ? getTableOrder(selectedTable) : undefined;
 
   const handleTableClick = (t: number) => {
+    if (editMode) return;
     let order = getTableOrder(t);
     if (!order) {
       order = createOrder(t);
       refresh();
     }
     setSelectedTable(t);
+  };
+
+  const handleAddTable = () => {
+    const num = addTable();
+    refresh();
+    toast.success(`Mesa ${num} creada`);
+  };
+
+  const handleRemoveTable = (t: number) => {
+    const ok = removeTable(t);
+    if (!ok) {
+      toast.error(`No se puede eliminar la mesa ${t} porque tiene una orden abierta`);
+      return;
+    }
+    if (selectedTable === t) setSelectedTable(null);
+    refresh();
+    toast.success(`Mesa ${t} eliminada`);
   };
 
   const handleAddProduct = (p: Product) => {
@@ -46,36 +69,57 @@ export default function TablesPage() {
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-2xl font-heading font-bold mb-6">Mesas</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-heading font-bold">Mesas</h1>
+        <div className="flex gap-2">
+          <Button size="sm" variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)}>
+            {editMode ? <><Check className="w-4 h-4 mr-1" /> Listo</> : <><Trash className="w-4 h-4 mr-1" /> Editar</>}
+          </Button>
+          <Button size="sm" variant="outline" onClick={handleAddTable}>
+            <PlusCircle className="w-4 h-4 mr-1" /> Nueva Mesa
+          </Button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
-        {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map(t => {
+        {tables.map(t => {
           const order = getTableOrder(t);
           const hasItems = order && order.items.length > 0;
           return (
-            <button
-              key={t}
-              onClick={() => handleTableClick(t)}
-              className={`rounded-xl p-4 text-center transition-all border-2 ${
-                selectedTable === t
-                  ? "border-primary bg-primary/10 shadow-md"
-                  : hasItems
-                  ? "border-success/50 bg-success/5 hover:shadow-md"
-                  : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
-              }`}
-            >
-              <span className={`text-2xl font-heading font-bold ${hasItems ? "text-success" : "text-foreground"}`}>{t}</span>
-              <p className="text-xs text-muted-foreground mt-1">
-                {hasItems ? `${order!.items.length} items` : "Libre"}
-              </p>
-              {hasItems && <p className="text-xs font-semibold text-success mt-0.5">{fmt(order!.total)}</p>}
-            </button>
+            <div key={t} className="relative">
+              {editMode && (
+                <button
+                  onClick={() => handleRemoveTable(t)}
+                  className="absolute -top-2 -right-2 z-10 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center shadow-md hover:scale-110 transition-transform"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                onClick={() => handleTableClick(t)}
+                className={`w-full rounded-xl p-4 text-center transition-all border-2 ${
+                  editMode
+                    ? "border-destructive/30 bg-destructive/5 animate-pulse"
+                    : selectedTable === t
+                    ? "border-primary bg-primary/10 shadow-md"
+                    : hasItems
+                    ? "border-success/50 bg-success/5 hover:shadow-md"
+                    : "border-border bg-card hover:border-primary/30 hover:shadow-sm"
+                }`}
+              >
+                <span className={`text-2xl font-heading font-bold ${hasItems ? "text-success" : "text-foreground"}`}>{t}</span>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {hasItems ? `${order!.items.length} items` : "Libre"}
+                </p>
+                {hasItems && <p className="text-xs font-semibold text-success mt-0.5">{fmt(order!.total)}</p>}
+              </button>
+            </div>
           );
         })}
       </div>
 
       {/* Order detail panel */}
-      {selectedTable !== null && currentOrder && (
+      {selectedTable !== null && currentOrder && !editMode && (
         <div className="glass-card rounded-xl p-5 animate-fade-in">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-heading font-bold text-lg">Mesa {selectedTable}</h2>
