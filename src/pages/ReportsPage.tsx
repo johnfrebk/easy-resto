@@ -1,18 +1,62 @@
 import { useState, useEffect } from "react";
-import { getTodaySales, getOrders } from "@/lib/store";
-import { DollarSign, ShoppingCart, TrendingUp, Award } from "lucide-react";
+import { getSalesByDate } from "@/lib/store";
+import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function ReportsPage() {
-  const [sales, setSales] = useState<ReturnType<typeof getTodaySales>>({ total: 0, count: 0, items: [] });
+  const [date, setDate] = useState<Date>(new Date());
+  const [sales, setSales] = useState<ReturnType<typeof getSalesByDate>>({ total: 0, count: 0, items: [] });
 
-  useEffect(() => { setSales(getTodaySales()); }, []);
+  useEffect(() => {
+    setSales(getSalesByDate(date));
+  }, [date]);
 
   const fmt = (n: number) => `$${n.toFixed(2)}`;
+  const isToday = date.toDateString() === new Date().toDateString();
 
   return (
     <div className="animate-fade-in">
-      <h1 className="text-2xl font-heading font-bold mb-6">Reporte del Día</h1>
-      <p className="text-muted-foreground text-sm mb-6">{new Date().toLocaleDateString('es-MX', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-2xl font-heading font-bold">
+            {isToday ? "Reporte del Día" : "Reporte"}
+          </h1>
+          <p className="text-muted-foreground text-sm">
+            {format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es })}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className={cn("justify-start text-left font-normal gap-2", !date && "text-muted-foreground")}>
+                <CalendarIcon className="h-4 w-4" />
+                {format(date, "dd/MM/yyyy")}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={(d) => d && setDate(d)}
+                disabled={(d) => d > new Date()}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+          {!isToday && (
+            <Button variant="ghost" size="sm" onClick={() => setDate(new Date())}>
+              Hoy
+            </Button>
+          )}
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <div className="stat-card">
@@ -43,7 +87,9 @@ export default function ReportsPage() {
       </h2>
 
       {sales.items.length === 0 ? (
-        <p className="text-muted-foreground text-sm text-center py-8">No hay ventas registradas hoy.</p>
+        <p className="text-muted-foreground text-sm text-center py-8">
+          No hay ventas registradas {isToday ? "hoy" : "en esta fecha"}.
+        </p>
       ) : (
         <div className="glass-card rounded-xl overflow-hidden">
           <table className="w-full text-sm">
