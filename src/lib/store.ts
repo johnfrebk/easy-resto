@@ -251,4 +251,28 @@ function defaultProducts(): Product[] {
 }
 
 export const CATEGORIES = ['Comida', 'Bebidas', 'Postres', 'Extras'];
-export const TABLE_COUNT = 12;
+
+// Tables
+export function getTables(): number[] {
+  return load<number[]>('pos_tables', Array.from({ length: 12 }, (_, i) => i + 1), true);
+}
+
+export function saveTables(tables: number[]) {
+  save('pos_tables', tables);
+}
+
+export function addTable(): number {
+  const tables = getTables();
+  const next = tables.length > 0 ? Math.max(...tables) + 1 : 1;
+  tables.push(next);
+  saveTables(tables);
+  return next;
+}
+
+export function removeTable(tableNumber: number): boolean {
+  const orders = getOrders();
+  const hasOpen = orders.some(o => o.tableNumber === tableNumber && o.status === 'open');
+  if (hasOpen) return false;
+  saveTables(getTables().filter(t => t !== tableNumber));
+  return true;
+}
