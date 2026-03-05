@@ -211,9 +211,9 @@ export function addInventoryEntry(productId: string, type: 'entrada' | 'salida',
 }
 
 // Reports
-export function getTodaySales(): { total: number; count: number; items: { name: string; qty: number; revenue: number }[] } {
-  const today = new Date().toDateString();
-  const orders = getOrders().filter(o => o.status === 'closed' && new Date(o.closedAt!).toDateString() === today);
+export function getSalesByDate(date: Date): { total: number; count: number; items: { name: string; qty: number; revenue: number }[] } {
+  const target = date.toDateString();
+  const orders = getOrders().filter(o => o.status === 'closed' && new Date(o.closedAt!).toDateString() === target);
   const itemMap = new Map<string, { name: string; qty: number; revenue: number }>();
   for (const o of orders) {
     for (const i of o.items) {
