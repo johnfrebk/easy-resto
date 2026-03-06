@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getOrders, createOrder, getProducts, addItemToOrder, removeItemFromOrder, updateItemQty, closeOrder, getTables, addTable, removeTable, type Order, type Product } from "@/lib/store";
+import { isAdmin } from "@/lib/auth";
 import { Plus, Minus, Trash2, X, Printer, Check, PlusCircle, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -71,14 +72,16 @@ export default function TablesPage() {
     <div className="animate-fade-in">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-heading font-bold">Mesas</h1>
-        <div className="flex gap-2">
-          <Button size="sm" variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)}>
-            {editMode ? <><Check className="w-4 h-4 mr-1" /> Listo</> : <><Trash className="w-4 h-4 mr-1" /> Editar</>}
-          </Button>
-          <Button size="sm" variant="outline" onClick={handleAddTable}>
-            <PlusCircle className="w-4 h-4 mr-1" /> Nueva Mesa
-          </Button>
-        </div>
+        {isAdmin() && (
+          <div className="flex gap-2">
+            <Button size="sm" variant={editMode ? "default" : "outline"} onClick={() => setEditMode(!editMode)}>
+              {editMode ? <><Check className="w-4 h-4 mr-1" /> Listo</> : <><Trash className="w-4 h-4 mr-1" /> Editar</>}
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleAddTable}>
+              <PlusCircle className="w-4 h-4 mr-1" /> Nueva Mesa
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-3 mb-8">
