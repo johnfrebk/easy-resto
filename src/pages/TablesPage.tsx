@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { getOrders, createOrder, getProducts, addItemToOrder, removeItemFromOrder, updateItemQty, closeOrder, getTables, addTable, removeTable, type Order, type Product } from "@/lib/store";
+import { isAdmin } from "@/lib/auth";
 import { Plus, Minus, Trash2, X, Printer, Check, PlusCircle, Trash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
