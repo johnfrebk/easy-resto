@@ -13,7 +13,7 @@ export interface StoredUser extends AppUser {
 const USERS_KEY = 'pos_users';
 const SESSION_KEY = 'pos_session';
 
-function getUsers(): StoredUser[] {
+function _getUsers(): StoredUser[] {
   try {
     const data = localStorage.getItem(USERS_KEY);
     return data ? JSON.parse(data) : [];
