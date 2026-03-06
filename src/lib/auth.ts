@@ -26,7 +26,7 @@ function saveUsers(users: StoredUser[]) {
 
 // Inicializar con usuario admin por defecto si no existe
 export function initAuth() {
-  const users = getUsers();
+  const users = _getUsers();
   if (users.length === 0) {
     saveUsers([
       { id: crypto.randomUUID(), username: 'admin', password: 'admin123', role: 'admin' },
