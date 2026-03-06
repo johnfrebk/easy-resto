@@ -1,16 +1,17 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, Download, Upload, LogOut, Settings } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, Download, Upload, LogOut, Users } from "lucide-react";
 import { getLowStockProducts } from "@/lib/store";
 import { exportBackup, importBackup } from "@/lib/backup";
-import { logout } from "@/lib/auth";
+import { logout, getCurrentUser } from "@/lib/auth";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
-const links = [
-  { to: "/", icon: LayoutGrid, label: "Mesas" },
-  { to: "/menu", icon: UtensilsCrossed, label: "Menú" },
-  { to: "/inventario", icon: Package, label: "Inventario" },
-  { to: "/reportes", icon: BarChart3, label: "Reportes" },
+const allLinks = [
+  { to: "/", icon: LayoutGrid, label: "Mesas", roles: ["admin", "cajero"] },
+  { to: "/menu", icon: UtensilsCrossed, label: "Menú", roles: ["admin"] },
+  { to: "/inventario", icon: Package, label: "Inventario", roles: ["admin"] },
+  { to: "/reportes", icon: BarChart3, label: "Reportes", roles: ["admin", "cajero"] },
+  { to: "/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
 ];
 
 export default function AppSidebar() {
@@ -18,6 +19,8 @@ export default function AppSidebar() {
   const navigate = useNavigate();
   const [lowStock, setLowStock] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const user = getCurrentUser();
+  const links = allLinks.filter(l => l.roles.includes(user?.role || ""));
 
   useEffect(() => {
     setLowStock(getLowStockProducts().length);

@@ -6,7 +6,7 @@ export interface AppUser {
   role: 'admin' | 'cajero';
 }
 
-interface StoredUser extends AppUser {
+export interface StoredUser extends AppUser {
   password: string;
 }
 
@@ -59,3 +59,23 @@ export function getCurrentUser(): AppUser | null {
 export function isLoggedIn(): boolean {
   return getCurrentUser() !== null;
 }
+
+export function isAdmin(): boolean {
+  return getCurrentUser()?.role === 'admin';
+}
+
+export function getUsers(): StoredUser[] {
+  initAuth();
+  return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+}
+
+export function addUser(username: string, password: string, role: 'admin' | 'cajero') {
+  const users = getUsers();
+  users.push({ id: crypto.randomUUID(), username, password, role });
+  saveUsers(users);
+}
+
+export function deleteUser(id: string) {
+  saveUsers(getUsers().filter(u => u.id !== id));
+}
+
