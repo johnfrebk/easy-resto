@@ -1,13 +1,11 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, Download, Upload, LogOut, Users } from "lucide-react";
-import { getLowStockProducts } from "@/lib/store";
-import { exportBackup, importBackup } from "@/lib/backup";
-import { logout, getCurrentUser } from "@/lib/auth";
-import { useState, useEffect, useRef } from "react";
-import { toast } from "sonner";
+import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, LogOut, Users } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useLowStockProducts } from "@/hooks/useProducts";
+import { useRealtimeSync } from "@/hooks/useRealtime";
 
 const allLinks = [
-  { to: "/", icon: LayoutGrid, label: "Mesas", roles: ["admin", "cajero"] },
+  { to: "/", icon: LayoutGrid, label: "Mesas", roles: ["admin", "cajero", "mesero"] },
   { to: "/menu", icon: UtensilsCrossed, label: "Menú", roles: ["admin"] },
   { to: "/inventario", icon: Package, label: "Inventario", roles: ["admin"] },
   { to: "/reportes", icon: BarChart3, label: "Reportes", roles: ["admin", "cajero"] },
@@ -17,45 +15,16 @@ const allLinks = [
 export default function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [lowStock, setLowStock] = useState(0);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const user = getCurrentUser();
-  const links = allLinks.filter(l => l.roles.includes(user?.role || ""));
+  const { role, displayName, signOut } = useAuth();
+  const { data: lowStockProducts } = useLowStockProducts();
+  const lowStock = lowStockProducts?.length ?? 0;
 
-  useEffect(() => {
-    setLowStock(getLowStockProducts().length);
-    const interval = setInterval(() => setLowStock(getLowStockProducts().length), 5000);
-    return () => clearInterval(interval);
-  }, [location]);
+  useRealtimeSync();
 
-  const handleExport = () => {
-    exportBackup();
-    toast.success("Respaldo descargado correctamente");
-  };
+  const links = allLinks.filter(l => l.roles.includes(role || ""));
 
-  const handleImport = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      try {
-        importBackup(ev.target?.result as string);
-        toast.success("Respaldo restaurado. Recargando...");
-        setTimeout(() => window.location.reload(), 1000);
-      } catch {
-        toast.error("Archivo de respaldo inválido");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await signOut();
     navigate("/login");
   };
 
@@ -104,15 +73,12 @@ export default function AppSidebar() {
       )}
 
       <div className="mt-auto mx-2 space-y-1">
-        <button onClick={handleExport} className="flex items-center gap-3 px-4 py-2.5 rounded-lg w-full hover:bg-sidebar-accent/50 text-sidebar-foreground transition-colors">
-          <Download className="w-4 h-4" />
-          <span className="hidden lg:block text-xs font-medium">Respaldar datos</span>
-        </button>
-        <button onClick={handleImport} className="flex items-center gap-3 px-4 py-2.5 rounded-lg w-full hover:bg-sidebar-accent/50 text-sidebar-foreground transition-colors">
-          <Upload className="w-4 h-4" />
-          <span className="hidden lg:block text-xs font-medium">Restaurar datos</span>
-        </button>
-        <input ref={fileInputRef} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
+        {displayName && (
+          <div className="px-4 py-2 hidden lg:block">
+            <p className="text-xs text-sidebar-foreground/60 truncate">{displayName}</p>
+            <p className="text-[10px] text-sidebar-foreground/40 capitalize">{role}</p>
+          </div>
+        )}
         <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-2.5 rounded-lg w-full hover:bg-destructive/10 text-destructive transition-colors">
           <LogOut className="w-4 h-4" />
           <span className="hidden lg:block text-xs font-medium">Cerrar sesión</span>
