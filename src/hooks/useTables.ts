@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { cacheData, getCachedData } from "@/lib/offlineQueue";
 
 export interface RestTable {
   id: string;
@@ -14,13 +15,23 @@ export function useTables() {
     queryKey: ["tables"],
     enabled: sessionReady && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tables")
-        .select("*")
-        .eq("active", true)
-        .order("table_number");
-      if (error) throw error;
-      return data as RestTable[];
+      try {
+        const { data, error } = await supabase
+          .from("tables")
+          .select("*")
+          .eq("active", true)
+          .order("table_number");
+        if (error) throw error;
+        const tables = data as RestTable[];
+        cacheData("tables", tables);
+        return tables;
+      } catch (err) {
+        if (!navigator.onLine) {
+          const cached = getCachedData<RestTable[]>("tables");
+          if (cached) return cached;
+        }
+        throw err;
+      }
     },
   });
 }
@@ -29,7 +40,6 @@ export function useAddTable() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async () => {
-      // get max table number
       const { data } = await supabase
         .from("tables")
         .select("table_number")
