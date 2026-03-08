@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface RestTable {
   id: string;
@@ -8,8 +9,10 @@ export interface RestTable {
 }
 
 export function useTables() {
+  const { sessionReady, user } = useAuth();
   return useQuery({
     queryKey: ["tables"],
+    enabled: sessionReady && !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tables")

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const TAX_RATE = 0.16;
 
@@ -28,8 +29,10 @@ export interface Order {
 }
 
 export function useOpenOrders() {
+  const { sessionReady, user } = useAuth();
   return useQuery({
     queryKey: ["orders", "open"],
+    enabled: sessionReady && !!user,
     queryFn: async () => {
       const { data: orders, error } = await supabase
         .from("orders")
