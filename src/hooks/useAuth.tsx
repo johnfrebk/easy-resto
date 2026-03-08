@@ -9,6 +9,7 @@ interface AuthState {
   role: AppRole | null;
   displayName: string | null;
   loading: boolean;
+  sessionReady: boolean;
   signIn: (email: string, password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
   isAdmin: () => boolean;
