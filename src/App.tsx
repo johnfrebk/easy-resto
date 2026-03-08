@@ -10,6 +10,7 @@ import MenuPage from "./pages/MenuPage";
 import InventoryPage from "./pages/InventoryPage";
 import ReportsPage from "./pages/ReportsPage";
 import UsersPage from "./pages/UsersPage";
+import BackupPage from "./pages/BackupPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -50,6 +51,7 @@ const App = () => (
               <Route path="/inventario" element={<AdminRoute><InventoryPage /></AdminRoute>} />
               <Route path="/reportes" element={<ReportsPage />} />
               <Route path="/usuarios" element={<AdminRoute><UsersPage /></AdminRoute>} />
+              <Route path="/backup" element={<AdminRoute><BackupPage /></AdminRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
