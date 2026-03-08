@@ -42,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setDisplayName(null);
       }
       setLoading(false);
+      setSessionReady(true);
     });
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -51,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await fetchUserMeta(u.id);
       }
       setLoading(false);
+      setSessionReady(true);
     });
 
     return () => subscription.unsubscribe();
