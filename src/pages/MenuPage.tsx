@@ -1,44 +1,53 @@
-import { useState, useEffect } from "react";
-import { getProducts, addProduct, updateProduct, deleteProduct, CATEGORIES, type Product } from "@/lib/store";
-import { Plus, Pencil, Trash2, X, Save } from "lucide-react";
+import { useState } from "react";
+import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, CATEGORIES, type Product } from "@/hooks/useProducts";
+import { Plus, Pencil, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 
-const empty = { name: '', category: 'Comida', price: 0, cost: 0, stock: 0, minStock: 5 };
+const empty = { name: '', category: 'Comida', price: 0, cost: 0, stock: 0, min_stock: 5 };
 
 export default function MenuPage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const { data: products = [] } = useProducts();
+  const addProduct = useAddProduct();
+  const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
   const [editing, setEditing] = useState<Partial<Product> | null>(null);
   const [isNew, setIsNew] = useState(false);
-
-  const refresh = () => setProducts(getProducts());
-  useEffect(() => { refresh(); }, []);
-
-  const handleSave = () => {
-    if (!editing || !editing.name) { toast.error("Nombre requerido"); return; }
-    if (isNew) {
-      addProduct(editing as Omit<Product, 'id'>);
-      toast.success("Producto creado");
-    } else {
-      updateProduct(editing.id!, editing);
-      toast.success("Producto actualizado");
-    }
-    setEditing(null);
-    refresh();
-  };
-
-  const handleDelete = (id: string) => {
-    deleteProduct(id);
-    toast.success("Producto eliminado");
-    refresh();
-  };
+  const [filter, setFilter] = useState('Todos');
 
   const categories = ['Todos', ...new Set(products.map(p => p.category))];
-  const [filter, setFilter] = useState('Todos');
   const filtered = filter === 'Todos' ? products : products.filter(p => p.category === filter);
+
+  const handleSave = async () => {
+    if (!editing || !editing.name) { toast.error("Nombre requerido"); return; }
+    try {
+      if (isNew) {
+        await addProduct.mutateAsync({
+          name: editing.name,
+          category: editing.category || 'Comida',
+          price: editing.price || 0,
+          cost: editing.cost || 0,
+          stock: editing.stock || 0,
+          min_stock: editing.min_stock || 5,
+        });
+        toast.success("Producto creado");
+      } else {
+        await updateProduct.mutateAsync({ id: editing.id!, ...editing });
+        toast.success("Producto actualizado");
+      }
+      setEditing(null);
+    } catch (e: any) {
+      toast.error(e.message || "Error al guardar");
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteProduct.mutateAsync(id);
+    toast.success("Producto eliminado");
+  };
 
   return (
     <div className="animate-fade-in">
@@ -71,8 +80,8 @@ export default function MenuPage() {
               </div>
             </div>
             <div className="mt-auto pt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">Precio: <strong className="text-foreground">${p.price}</strong></span>
-              <span className={`font-medium ${p.stock <= p.minStock ? 'text-destructive' : 'text-muted-foreground'}`}>
+              <span className="text-muted-foreground">Precio: <strong className="text-foreground">${Number(p.price).toFixed(2)}</strong></span>
+              <span className={`font-medium ${p.stock <= p.min_stock ? 'text-destructive' : 'text-muted-foreground'}`}>
                 Stock: {p.stock}
               </span>
             </div>
@@ -80,7 +89,6 @@ export default function MenuPage() {
         ))}
       </div>
 
-      {/* Edit/Create Dialog */}
       <Dialog open={!!editing} onOpenChange={() => setEditing(null)}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle className="font-heading">{isNew ? "Nuevo Producto" : "Editar Producto"}</DialogTitle></DialogHeader>
@@ -99,7 +107,7 @@ export default function MenuPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div><label className="text-xs font-medium text-muted-foreground">Stock</label><Input type="number" value={editing.stock} onChange={e => setEditing({ ...editing, stock: +e.target.value })} /></div>
-                <div><label className="text-xs font-medium text-muted-foreground">Stock Mínimo</label><Input type="number" value={editing.minStock} onChange={e => setEditing({ ...editing, minStock: +e.target.value })} /></div>
+                <div><label className="text-xs font-medium text-muted-foreground">Stock Mínimo</label><Input type="number" value={editing.min_stock} onChange={e => setEditing({ ...editing, min_stock: +e.target.value })} /></div>
               </div>
               <Button className="w-full" onClick={handleSave}><Save className="w-4 h-4 mr-1" /> Guardar</Button>
             </div>

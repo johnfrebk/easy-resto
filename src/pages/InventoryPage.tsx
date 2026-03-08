@@ -1,5 +1,7 @@
-import { useState, useEffect } from "react";
-import { getProducts, getInventoryLogs, addInventoryEntry, getLowStockProducts, type Product, type InventoryLog } from "@/lib/store";
+import { useState } from "react";
+import { useProducts, useLowStockProducts } from "@/hooks/useProducts";
+import { useInventoryLogs, useAddInventoryEntry } from "@/hooks/useInventory";
+import { useAuth } from "@/hooks/useAuth";
 import { Package, AlertTriangle, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,27 +10,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [logs, setLogs] = useState<InventoryLog[]>([]);
-  const [lowStock, setLowStock] = useState<Product[]>([]);
+  const { user } = useAuth();
+  const { data: products = [] } = useProducts();
+  const { data: lowStock = [] } = useLowStockProducts();
+  const { data: logs = [] } = useInventoryLogs();
+  const addEntry = useAddInventoryEntry();
+
   const [showEntry, setShowEntry] = useState(false);
-  const [entryProduct, setEntryProduct] = useState('');
-  const [entryType, setEntryType] = useState<'entrada' | 'salida'>('entrada');
+  const [entryProduct, setEntryProduct] = useState("");
+  const [entryType, setEntryType] = useState<"entrada" | "salida">("entrada");
   const [entryQty, setEntryQty] = useState(1);
 
-  const refresh = () => {
-    setProducts(getProducts());
-    setLogs(getInventoryLogs().slice(-50).reverse());
-    setLowStock(getLowStockProducts());
-  };
-  useEffect(() => { refresh(); }, []);
-
-  const handleEntry = () => {
+  const handleEntry = async () => {
     if (!entryProduct) { toast.error("Selecciona un producto"); return; }
-    addInventoryEntry(entryProduct, entryType, entryQty);
-    toast.success(`${entryType === 'entrada' ? 'Entrada' : 'Salida'} registrada`);
-    setShowEntry(false);
-    refresh();
+    try {
+      await addEntry.mutateAsync({ productId: entryProduct, type: entryType, quantity: entryQty, userId: user?.id });
+      toast.success(`${entryType === "entrada" ? "Entrada" : "Salida"} registrada`);
+      setShowEntry(false);
+    } catch (e: any) {
+      toast.error(e.message || "Error");
+    }
   };
 
   return (
@@ -40,7 +41,6 @@ export default function InventoryPage() {
         </Button>
       </div>
 
-      {/* Low stock alerts */}
       {lowStock.length > 0 && (
         <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 mb-6">
           <div className="flex items-center gap-2 mb-2">
@@ -50,14 +50,13 @@ export default function InventoryPage() {
           <div className="flex flex-wrap gap-2">
             {lowStock.map(p => (
               <span key={p.id} className="px-3 py-1 rounded-full bg-warning/20 text-sm font-medium">
-                {p.name}: <strong>{p.stock}</strong> (mín: {p.minStock})
+                {p.name}: <strong>{p.stock}</strong> (mín: {p.min_stock})
               </span>
             ))}
           </div>
         </div>
       )}
 
-      {/* Stock table */}
       <div className="glass-card rounded-xl overflow-hidden mb-6">
         <table className="w-full text-sm">
           <thead><tr className="border-b border-border bg-secondary/50">
@@ -73,10 +72,10 @@ export default function InventoryPage() {
                 <td className="p-3 font-medium">{p.name}</td>
                 <td className="p-3 text-muted-foreground">{p.category}</td>
                 <td className="p-3 text-right font-semibold">{p.stock}</td>
-                <td className="p-3 text-right text-muted-foreground">{p.minStock}</td>
+                <td className="p-3 text-right text-muted-foreground">{p.min_stock}</td>
                 <td className="p-3 text-right">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.stock <= p.minStock ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
-                    {p.stock <= p.minStock ? 'Bajo' : 'OK'}
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${p.stock <= p.min_stock ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
+                    {p.stock <= p.min_stock ? 'Bajo' : 'OK'}
                   </span>
                 </td>
               </tr>
@@ -85,20 +84,18 @@ export default function InventoryPage() {
         </table>
       </div>
 
-      {/* Recent logs */}
       <h2 className="font-heading font-bold text-lg mb-3">Movimientos Recientes</h2>
       <div className="space-y-2">
         {logs.length === 0 && <p className="text-muted-foreground text-sm text-center py-4">Sin movimientos registrados.</p>}
         {logs.slice(0, 20).map(log => (
           <div key={log.id} className="flex items-center gap-3 bg-card rounded-lg p-3 border border-border/50 text-sm">
-            {log.type === 'entrada' ? <ArrowUpCircle className="w-4 h-4 text-success" /> : <ArrowDownCircle className="w-4 h-4 text-destructive" />}
-            <span className="flex-1"><strong>{log.productName}</strong> — {log.type} de {log.quantity} unidades</span>
-            <span className="text-muted-foreground text-xs">{new Date(log.date).toLocaleString('es-MX')}</span>
+            {log.type === "entrada" ? <ArrowUpCircle className="w-4 h-4 text-success" /> : <ArrowDownCircle className="w-4 h-4 text-destructive" />}
+            <span className="flex-1"><strong>{log.product_name}</strong> — {log.type} de {log.quantity} unidades</span>
+            <span className="text-muted-foreground text-xs">{new Date(log.created_at).toLocaleString("es-MX")}</span>
           </div>
         ))}
       </div>
 
-      {/* Entry dialog */}
       <Dialog open={showEntry} onOpenChange={setShowEntry}>
         <DialogContent className="max-w-sm">
           <DialogHeader><DialogTitle className="font-heading">Registrar Movimiento</DialogTitle></DialogHeader>
@@ -110,7 +107,7 @@ export default function InventoryPage() {
               </Select>
             </div>
             <div><label className="text-xs font-medium text-muted-foreground">Tipo</label>
-              <Select value={entryType} onValueChange={v => setEntryType(v as 'entrada' | 'salida')}>
+              <Select value={entryType} onValueChange={v => setEntryType(v as "entrada" | "salida")}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="entrada">Entrada</SelectItem>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { getSalesByDate } from "@/lib/store";
+import { useState } from "react";
+import { useSalesByDate } from "@/hooks/useReports";
 import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -10,11 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 export default function ReportsPage() {
   const [date, setDate] = useState<Date>(new Date());
-  const [sales, setSales] = useState<ReturnType<typeof getSalesByDate>>({ total: 0, count: 0, items: [] });
-
-  useEffect(() => {
-    setSales(getSalesByDate(date));
-  }, [date]);
+  const { data: sales = { total: 0, count: 0, items: [] } } = useSalesByDate(date);
 
   const fmt = (n: number) => `$${n.toFixed(2)}`;
   const isToday = date.toDateString() === new Date().toDateString();

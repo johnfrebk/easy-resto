@@ -1,32 +1,29 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login, initAuth } from "@/lib/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { UtensilsCrossed, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { signIn } = useAuth();
   const navigate = useNavigate();
 
-  useState(() => { initAuth(); });
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      const user = login(username, password);
-      if (user) {
-        toast.success(`Bienvenido, ${user.username}`);
-        navigate("/");
-      } else {
-        toast.error("Usuario o contraseña incorrectos");
-      }
-      setLoading(false);
-    }, 300);
+    const error = await signIn(email, password);
+    if (error) {
+      toast.error("Credenciales incorrectas");
+    } else {
+      toast.success("Bienvenido");
+      navigate("/");
+    }
+    setLoading(false);
   };
 
   return (
@@ -42,11 +39,12 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="glass-card rounded-xl p-6 space-y-4">
           <div>
-            <label className="text-sm font-medium text-foreground mb-1.5 block">Usuario</label>
+            <label className="text-sm font-medium text-foreground mb-1.5 block">Correo electrónico</label>
             <Input
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="Ingresa tu usuario"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="admin@turestaurante.com"
               autoFocus
               required
             />
@@ -66,7 +64,7 @@ export default function LoginPage() {
             {loading ? "Ingresando..." : "Ingresar"}
           </Button>
           <p className="text-xs text-muted-foreground text-center mt-3">
-            Usuarios por defecto: <strong>admin</strong> / admin123 · <strong>cajero</strong> / cajero123
+            Contacta al administrador para obtener tus credenciales de acceso.
           </p>
         </form>
       </div>
