@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useRef, ReactNode, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
@@ -23,7 +23,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [sessionReady, setSessionReady] = useState(false);
-  const initialized = useRef(false);
 
   const fetchUserMeta = useCallback(async (userId: string) => {
     try {
@@ -35,61 +34,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setDisplayName(profileRes.data?.display_name ?? null);
     } catch (err) {
       console.error("Error fetching user meta:", err);
-    }
-  }, []);
-
-  const markReady = useCallback(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      setLoading(false);
-      setSessionReady(true);
+      setRole(null);
+      setDisplayName(null);
     }
   }, []);
 
   useEffect(() => {
-    // 1. Restore session from storage
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        await fetchUserMeta(u.id);
-      }
-      markReady();
-    });
+    let isMounted = true;
 
-    // 2. Listen for subsequent auth changes (login, logout, token refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Skip INITIAL_SESSION — handled by getSession above
-      if (event === 'INITIAL_SESSION') return;
-      
-      const u = session?.user ?? null;
+    const markReady = () => {
+      if (!isMounted) return;
+      setLoading(false);
+      setSessionReady(true);
+    };
+
+    const clearMeta = () => {
+      if (!isMounted) return;
+      setRole(null);
+      setDisplayName(null);
+    };
+
+    const applySession = (u: User | null) => {
+      if (!isMounted) return;
       setUser(u);
+
       if (u) {
-        await fetchUserMeta(u.id);
+        void fetchUserMeta(u.id);
       } else {
-        setRole(null);
-        setDisplayName(null);
+        clearMeta();
       }
+
       markReady();
+    };
+
+    // 1) Subscribe first to avoid missing events
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "INITIAL_SESSION") return;
+
+      const u = session?.user ?? null;
+      // IMPORTANT: never call Supabase APIs directly inside this callback (deadlock risk)
+      setTimeout(() => {
+        applySession(u);
+      }, 0);
     });
 
-    // 3. Safety timeout
-    const timeout = setTimeout(markReady, 5000);
+    // 2) Restore stored session
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        applySession(session?.user ?? null);
+      })
+      .catch((err) => {
+        console.error("Error restoring session:", err);
+        applySession(null);
+      });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
-      clearTimeout(timeout);
     };
-  }, [fetchUserMeta, markReady]);
+  }, [fetchUserMeta]);
 
   const signIn = async (email: string, password: string): Promise<string | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) return error.message;
-    if (data.user) {
-      setUser(data.user);
-      await fetchUserMeta(data.user.id);
-    }
-    return null;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return error ? error.message : null;
   };
 
   const signOut = async () => {
@@ -97,7 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(null);
     setDisplayName(null);
     try {
-      await supabase.auth.signOut({ scope: 'local' });
+      await supabase.auth.signOut({ scope: "local" });
     } catch (e) {
       console.error("signOut error:", e);
     }
