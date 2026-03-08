@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { cacheData, getCachedData } from "@/lib/offlineQueue";
 
 export const CATEGORIES = ["Comida", "Bebidas", "Postres", "Extras"];
 
@@ -18,13 +19,23 @@ export function useProducts() {
   return useQuery({
     queryKey: ["products"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .eq("active", true)
-        .order("name");
-      if (error) throw error;
-      return data as Product[];
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .eq("active", true)
+          .order("name");
+        if (error) throw error;
+        const products = data as Product[];
+        cacheData("products", products);
+        return products;
+      } catch (err) {
+        if (!navigator.onLine) {
+          const cached = getCachedData<Product[]>("products");
+          if (cached) return cached;
+        }
+        throw err;
+      }
     },
   });
 }
@@ -33,9 +44,17 @@ export function useLowStockProducts() {
   return useQuery({
     queryKey: ["products", "lowStock"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("products").select("*").eq("active", true);
-      if (error) throw error;
-      return (data as Product[]).filter((p) => p.stock <= p.min_stock);
+      try {
+        const { data, error } = await supabase.from("products").select("*").eq("active", true);
+        if (error) throw error;
+        return (data as Product[]).filter((p) => p.stock <= p.min_stock);
+      } catch (err) {
+        if (!navigator.onLine) {
+          const cached = getCachedData<Product[]>("products");
+          if (cached) return cached.filter((p) => p.stock <= p.min_stock);
+        }
+        throw err;
+      }
     },
   });
 }
