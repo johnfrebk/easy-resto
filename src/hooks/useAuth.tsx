@@ -88,10 +88,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
     setUser(null);
     setRole(null);
     setDisplayName(null);
+    try {
+      await supabase.auth.signOut({ scope: 'local' });
+    } catch (e) {
+      console.error("signOut error:", e);
+    }
   };
 
   const isAdmin = () => role === "admin";
