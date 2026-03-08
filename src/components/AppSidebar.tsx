@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, LogOut, Users } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, LogOut, Users, DatabaseBackup } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLowStockProducts } from "@/hooks/useProducts";
 import { useRealtimeSync } from "@/hooks/useRealtime";
