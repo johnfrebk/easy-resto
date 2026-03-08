@@ -1,11 +1,15 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 export function useRealtimeSync() {
   const qc = useQueryClient();
+  const { sessionReady, user } = useAuth();
 
   useEffect(() => {
+    if (!sessionReady || !user) return;
+
     const channel = supabase
       .channel("pos-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () => {
@@ -25,5 +29,5 @@ export function useRealtimeSync() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [qc]);
+  }, [qc, sessionReady, user]);
 }

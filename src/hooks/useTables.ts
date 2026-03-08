@@ -9,8 +9,10 @@ export interface RestTable {
 }
 
 export function useTables() {
+  const { sessionReady, user } = useAuth();
   return useQuery({
     queryKey: ["tables"],
+    enabled: sessionReady && !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tables")

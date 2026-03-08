@@ -29,8 +29,10 @@ export interface Order {
 }
 
 export function useOpenOrders() {
+  const { sessionReady, user } = useAuth();
   return useQuery({
     queryKey: ["orders", "open"],
+    enabled: sessionReady && !!user,
     queryFn: async () => {
       const { data: orders, error } = await supabase
         .from("orders")

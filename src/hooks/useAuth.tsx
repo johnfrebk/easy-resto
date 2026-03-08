@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<AppRole | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [sessionReady, setSessionReady] = useState(false);
 
   const fetchUserMeta = async (userId: string) => {
     const [roleRes, profileRes] = await Promise.all([
@@ -33,6 +34,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Restore session first
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u) {
+        await fetchUserMeta(u.id);
+      }
+      setLoading(false);
+      setSessionReady(true);
+    });
+
+    // Then listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const u = session?.user ?? null;
       setUser(u);
@@ -41,16 +54,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setRole(null);
         setDisplayName(null);
-      }
-      setLoading(false);
-      setSessionReady(true);
-    });
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u) {
-        await fetchUserMeta(u.id);
       }
       setLoading(false);
       setSessionReady(true);
@@ -74,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isAdmin = () => role === "admin";
 
   return (
-    <AuthContext.Provider value={{ user, role, displayName, loading, signIn, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, role, displayName, loading, sessionReady, signIn, signOut, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );
