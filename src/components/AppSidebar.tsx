@@ -10,6 +10,7 @@ const allLinks = [
   { to: "/inventario", icon: Package, label: "Inventario", roles: ["admin"] },
   { to: "/reportes", icon: BarChart3, label: "Reportes", roles: ["admin", "cajero"] },
   { to: "/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
+  { to: "/backup", icon: DatabaseBackup, label: "Respaldo", roles: ["admin"] },
 ];
 
 export default function AppSidebar() {
