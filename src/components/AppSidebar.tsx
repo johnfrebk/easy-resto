@@ -24,8 +24,12 @@ export default function AppSidebar() {
   const links = allLinks.filter(l => l.roles.includes(role || ""));
 
   const handleLogout = async () => {
-    await signOut();
-    navigate("/login");
+    try {
+      await signOut();
+    } catch (e) {
+      console.error("Logout error:", e);
+    }
+    navigate("/login", { replace: true });
   };
 
   return (
