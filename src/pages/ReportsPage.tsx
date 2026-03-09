@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useSalesByDate } from "@/hooks/useReports";
-import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon } from "lucide-react";
+import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
