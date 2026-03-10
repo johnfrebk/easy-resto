@@ -176,7 +176,7 @@ export default function ReportsPage() {
             <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-warning" /></div>
             <span className="text-sm text-muted-foreground">Ticket Promedio</span>
           </div>
-          <p className="text-2xl font-heading font-bold">{sales.count > 0 ? fmt(sales.total / sales.count) : '$0.00'}</p>
+          <p className="text-2xl font-heading font-bold">{sales.count > 0 ? fmt(sales.total / sales.count) : '$0'}</p>
         </div>
       </div>
 
