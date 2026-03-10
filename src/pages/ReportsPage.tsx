@@ -98,7 +98,7 @@ export default function ReportsPage() {
       [],
       ["Ventas Totales", fmt(sales.total)],
       ["Órdenes", sales.count],
-      ["Ticket Promedio", sales.count > 0 ? fmt(sales.total / sales.count) : "$0.00"],
+      ["Ticket Promedio", sales.count > 0 ? fmt(sales.total / sales.count) : "$0"],
       [],
       ["#", "Producto", "Cantidad", "Ingresos"],
       ...sales.items.map((item, i) => [i + 1, item.name, item.qty, fmt(item.revenue)]),
