@@ -62,7 +62,7 @@ export default function ReportsPage() {
           </div>
           <div class="stat">
             <div class="stat-label">Ticket Promedio</div>
-            <div class="stat-value">${sales.count > 0 ? fmt(sales.total / sales.count) : "$0.00"}</div>
+            <div class="stat-value">${sales.count > 0 ? fmt(sales.total / sales.count) : "$0"}</div>
           </div>
         </div>
         <h2>Productos Más Vendidos</h2>
