@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, CATEGORIES, type Product } from "@/hooks/useProducts";
 import { Plus, Pencil, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -80,7 +81,7 @@ export default function MenuPage() {
               </div>
             </div>
             <div className="mt-auto pt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">Precio: <strong className="text-foreground">${Number(p.price).toFixed(2)}</strong></span>
+              <span className="text-muted-foreground">Precio: <strong className="text-foreground">{fmtCOP(Number(p.price))}</strong></span>
               <span className={`font-medium ${p.stock <= p.min_stock ? 'text-destructive' : 'text-muted-foreground'}`}>
                 Stock: {p.stock}
               </span>

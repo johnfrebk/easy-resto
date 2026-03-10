@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useSalesByDate } from "@/hooks/useReports";
 import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon, Printer, Download } from "lucide-react";
 import { format } from "date-fns";
@@ -13,7 +14,7 @@ export default function ReportsPage() {
   const { data: sales = { total: 0, count: 0, items: [] } } = useSalesByDate(date);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const fmt = (n: number) => `$${n.toFixed(2)}`;
+  const fmt = fmtCOP;
   const isToday = date.toDateString() === new Date().toDateString();
   const dateLabel = format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
 
@@ -61,7 +62,7 @@ export default function ReportsPage() {
           </div>
           <div class="stat">
             <div class="stat-label">Ticket Promedio</div>
-            <div class="stat-value">${sales.count > 0 ? fmt(sales.total / sales.count) : "$0.00"}</div>
+            <div class="stat-value">${sales.count > 0 ? fmt(sales.total / sales.count) : "$0"}</div>
           </div>
         </div>
         <h2>Productos Más Vendidos</h2>
@@ -97,7 +98,7 @@ export default function ReportsPage() {
       [],
       ["Ventas Totales", fmt(sales.total)],
       ["Órdenes", sales.count],
-      ["Ticket Promedio", sales.count > 0 ? fmt(sales.total / sales.count) : "$0.00"],
+      ["Ticket Promedio", sales.count > 0 ? fmt(sales.total / sales.count) : "$0"],
       [],
       ["#", "Producto", "Cantidad", "Ingresos"],
       ...sales.items.map((item, i) => [i + 1, item.name, item.qty, fmt(item.revenue)]),
@@ -175,7 +176,7 @@ export default function ReportsPage() {
             <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center"><TrendingUp className="w-5 h-5 text-warning" /></div>
             <span className="text-sm text-muted-foreground">Ticket Promedio</span>
           </div>
-          <p className="text-2xl font-heading font-bold">{sales.count > 0 ? fmt(sales.total / sales.count) : '$0.00'}</p>
+          <p className="text-2xl font-heading font-bold">{sales.count > 0 ? fmt(sales.total / sales.count) : '$0'}</p>
         </div>
       </div>
 

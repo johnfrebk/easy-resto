@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
 import { useTables, useAddTable, useRemoveTable } from "@/hooks/useTables";
 import { useOpenOrders, useCreateOrder, useAddItemToOrder, useUpdateItemQty, useRemoveItem, useCloseOrder } from "@/hooks/useOrders";
@@ -79,7 +80,7 @@ export default function TablesPage() {
     toast.success("Cuenta cerrada correctamente");
   };
 
-  const fmt = (n: number) => `$${Number(n).toFixed(2)}`;
+  const fmt = fmtCOP;
 
   return (
     <div className="animate-fade-in">
@@ -200,7 +201,7 @@ export default function TablesPage() {
             <div className="space-y-3">
               <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
                 <p className="text-center font-bold text-base mb-2">Abby - RestoPOS</p>
-                <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-MX')}</p>
+                <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-CO')}</p>
                 <div className="border-t border-dashed my-2" />
                 {currentOrder.items.map(i => (
                   <div key={i.id} className="flex justify-between">
@@ -254,7 +255,7 @@ function MenuDialog({ open, onClose, onSelect }: { open: boolean; onClose: () =>
               className="text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all"
             >
               <p className="font-medium text-sm">{p.name}</p>
-              <p className="text-primary font-bold text-sm">${Number(p.price).toFixed(2)}</p>
+              <p className="text-primary font-bold text-sm">{fmtCOP(Number(p.price))}</p>
               <p className="text-xs text-muted-foreground">Stock: {p.stock}</p>
             </button>
           ))}
