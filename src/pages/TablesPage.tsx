@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useAuth } from "@/hooks/useAuth";
 import { useTables, useAddTable, useRemoveTable } from "@/hooks/useTables";
 import { useOpenOrders, useCreateOrder, useAddItemToOrder, useUpdateItemQty, useRemoveItem, useCloseOrder } from "@/hooks/useOrders";

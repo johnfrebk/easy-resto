@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useSalesByDate } from "@/hooks/useReports";
 import { DollarSign, ShoppingCart, TrendingUp, Award, CalendarIcon, Printer, Download } from "lucide-react";
 import { format } from "date-fns";

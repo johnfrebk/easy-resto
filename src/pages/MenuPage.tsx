@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fmtCOP } from "@/lib/currency";
 import { useProducts, useAddProduct, useUpdateProduct, useDeleteProduct, CATEGORIES, type Product } from "@/hooks/useProducts";
 import { Plus, Pencil, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
