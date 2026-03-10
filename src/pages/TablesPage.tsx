@@ -255,7 +255,7 @@ function MenuDialog({ open, onClose, onSelect }: { open: boolean; onClose: () =>
               className="text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-primary/5 transition-all"
             >
               <p className="font-medium text-sm">{p.name}</p>
-              <p className="text-primary font-bold text-sm">${Number(p.price).toFixed(2)}</p>
+              <p className="text-primary font-bold text-sm">{fmtCOP(Number(p.price))}</p>
               <p className="text-xs text-muted-foreground">Stock: {p.stock}</p>
             </button>
           ))}
