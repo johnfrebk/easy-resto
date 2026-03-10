@@ -7,13 +7,24 @@ interface SalesReport {
   items: { name: string; qty: number; revenue: number }[];
 }
 
+function getLocalDayBoundsUTC(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function formatDateKey(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
 export function useSalesByDate(date: Date) {
-  const dateStr = date.toISOString().slice(0, 10);
+  const dateKey = formatDateKey(date);
   return useQuery({
-    queryKey: ["reports", dateStr],
+    queryKey: ["reports", dateKey],
     queryFn: async (): Promise<SalesReport> => {
-      const startOfDay = `${dateStr}T00:00:00.000Z`;
-      const endOfDay = `${dateStr}T23:59:59.999Z`;
+      const { start: startOfDay, end: endOfDay } = getLocalDayBoundsUTC(date);
 
       const { data: orders, error } = await supabase
         .from("orders")
