@@ -79,7 +79,7 @@ export default function TablesPage() {
     toast.success("Cuenta cerrada correctamente");
   };
 
-  const fmt = (n: number) => `$${Number(n).toFixed(2)}`;
+  const fmt = fmtCOP;
 
   return (
     <div className="animate-fade-in">

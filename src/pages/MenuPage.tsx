@@ -80,7 +80,7 @@ export default function MenuPage() {
               </div>
             </div>
             <div className="mt-auto pt-2 flex justify-between text-sm">
-              <span className="text-muted-foreground">Precio: <strong className="text-foreground">${Number(p.price).toFixed(2)}</strong></span>
+              <span className="text-muted-foreground">Precio: <strong className="text-foreground">{fmtCOP(Number(p.price))}</strong></span>
               <span className={`font-medium ${p.stock <= p.min_stock ? 'text-destructive' : 'text-muted-foreground'}`}>
                 Stock: {p.stock}
               </span>

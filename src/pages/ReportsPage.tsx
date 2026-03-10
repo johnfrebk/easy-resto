@@ -13,7 +13,7 @@ export default function ReportsPage() {
   const { data: sales = { total: 0, count: 0, items: [] } } = useSalesByDate(date);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const fmt = (n: number) => `$${n.toFixed(2)}`;
+  const fmt = fmtCOP;
   const isToday = date.toDateString() === new Date().toDateString();
   const dateLabel = format(date, "EEEE d 'de' MMMM 'de' yyyy", { locale: es });
 
