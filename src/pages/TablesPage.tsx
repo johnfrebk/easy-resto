@@ -233,13 +233,25 @@ export default function TablesPage() {
 function MenuDialog({ open, onClose, onSelect }: { open: boolean; onClose: () => void; onSelect: (p: Product) => void }) {
   const { data: products = [] } = useProducts();
   const [filter, setFilter] = useState('Todos');
+  const [search, setSearch] = useState('');
   const categories = ['Todos', ...new Set(products.map(p => p.category))];
-  const filtered = filter === 'Todos' ? products : products.filter(p => p.category === filter);
+  const filtered = (filter === 'Todos' ? products : products.filter(p => p.category === filter))
+    .filter(p => p.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v) { setSearch(''); setFilter('Todos'); } onClose(); }}>
       <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
         <DialogHeader><DialogTitle className="font-heading">Agregar Producto</DialogTitle></DialogHeader>
+        <div className="relative mb-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Buscar producto..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full h-10 pl-9 pr-3 rounded-md border border-input bg-background text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+        </div>
         <div className="flex gap-2 flex-wrap mb-3">
           {categories.map(c => (
             <button key={c} onClick={() => setFilter(c)} className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${filter === c ? 'bg-primary text-primary-foreground' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}>
@@ -248,7 +260,9 @@ function MenuDialog({ open, onClose, onSelect }: { open: boolean; onClose: () =>
           ))}
         </div>
         <div className="grid grid-cols-2 gap-2">
-          {filtered.map(p => (
+          {filtered.length === 0 ? (
+            <p className="col-span-2 text-center text-muted-foreground text-sm py-8">No se encontraron productos</p>
+          ) : filtered.map(p => (
             <button
               key={p.id}
               onClick={() => { onSelect(p); }}
