@@ -11,6 +11,7 @@ const allLinks = [
   { to: "/reportes", icon: BarChart3, label: "Reportes", roles: ["admin", "cajero"] },
   { to: "/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
   { to: "/backup", icon: DatabaseBackup, label: "Respaldo", roles: ["admin"] },
+  { to: "/configuracion", icon: Settings, label: "Configuración", roles: ["admin"] },
 ];
 
 export default function AppSidebar() {
