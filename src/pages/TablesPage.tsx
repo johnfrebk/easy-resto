@@ -211,7 +211,7 @@ export default function TablesPage() {
                 ))}
                 <div className="border-t border-dashed my-2" />
                 <div className="flex justify-between"><span>Subtotal</span><span>{fmt(currentOrder.subtotal)}</span></div>
-                <div className="flex justify-between"><span>IVA 16%</span><span>{fmt(currentOrder.tax)}</span></div>
+                <div className="flex justify-between"><span>IVA</span><span>{fmt(currentOrder.tax)}</span></div>
                 <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{fmt(currentOrder.total)}</span></div>
               </div>
               <div className="flex gap-2">
