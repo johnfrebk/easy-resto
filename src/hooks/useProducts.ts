@@ -13,6 +13,9 @@ export interface Product {
   stock: number;
   min_stock: number;
   active: boolean;
+  iva_enabled: boolean;
+  iva_rate: number;
+  iva_included: boolean;
 }
 
 export function useProducts() {

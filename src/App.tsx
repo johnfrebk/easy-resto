@@ -11,6 +11,7 @@ import InventoryPage from "./pages/InventoryPage";
 import ReportsPage from "./pages/ReportsPage";
 import UsersPage from "./pages/UsersPage";
 import BackupPage from "./pages/BackupPage";
+import SettingsPage from "./pages/SettingsPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
 
@@ -52,6 +53,7 @@ const App = () => (
               <Route path="/reportes" element={<ReportsPage />} />
               <Route path="/usuarios" element={<AdminRoute><UsersPage /></AdminRoute>} />
               <Route path="/backup" element={<AdminRoute><BackupPage /></AdminRoute>} />
+              <Route path="/configuracion" element={<AdminRoute><SettingsPage /></AdminRoute>} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -1,5 +1,5 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, LogOut, Users, DatabaseBackup } from "lucide-react";
+import { LayoutGrid, UtensilsCrossed, Package, BarChart3, AlertTriangle, LogOut, Users, DatabaseBackup, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useLowStockProducts } from "@/hooks/useProducts";
 import { useRealtimeSync } from "@/hooks/useRealtime";
@@ -11,6 +11,7 @@ const allLinks = [
   { to: "/reportes", icon: BarChart3, label: "Reportes", roles: ["admin", "cajero"] },
   { to: "/usuarios", icon: Users, label: "Usuarios", roles: ["admin"] },
   { to: "/backup", icon: DatabaseBackup, label: "Respaldo", roles: ["admin"] },
+  { to: "/configuracion", icon: Settings, label: "Configuración", roles: ["admin"] },
 ];
 
 export default function AppSidebar() {

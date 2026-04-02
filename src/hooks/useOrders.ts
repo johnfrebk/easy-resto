@@ -3,8 +3,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { enqueue, cacheData, getCachedData } from "@/lib/offlineQueue";
 
-const TAX_RATE = 0.16;
-
 export interface OrderItem {
   id: string;
   order_id: string;
@@ -27,6 +25,16 @@ export interface Order {
   created_by: string | null;
   closed_by: string | null;
   items: OrderItem[];
+}
+
+/** Calculate tax for a single item based on its product's IVA config */
+async function getProductIvaInfo(productId: string): Promise<{ iva_enabled: boolean; iva_rate: number; iva_included: boolean }> {
+  const { data } = await supabase
+    .from("products")
+    .select("iva_enabled, iva_rate, iva_included")
+    .eq("id", productId)
+    .single();
+  return data || { iva_enabled: true, iva_rate: 19, iva_included: false };
 }
 
 export function useOpenOrders() {
@@ -58,11 +66,9 @@ export function useOpenOrders() {
           items: items.filter((i: any) => i.order_id === o.id),
         })) as Order[];
 
-        // Cache for offline use
         cacheData("orders_open", result);
         return result;
       } catch (err) {
-        // If offline, return cached data
         if (!navigator.onLine) {
           const cached = getCachedData<Order[]>("orders_open");
           if (cached) return cached;
@@ -78,7 +84,6 @@ export function useCreateOrder() {
   return useMutation({
     mutationFn: async ({ tableId, tableNumber, userId }: { tableId: string; tableNumber: number; userId?: string }) => {
       if (!navigator.onLine) {
-        // Create locally and queue for sync
         const offlineOrder: Order = {
           id: crypto.randomUUID(),
           table_id: tableId,
@@ -103,7 +108,6 @@ export function useCreateOrder() {
             created_at: offlineOrder.created_at,
           },
         });
-        // Update local cache
         const cached = getCachedData<Order[]>("orders_open") || [];
         cached.push(offlineOrder);
         cacheData("orders_open", cached);
@@ -133,7 +137,6 @@ export function useAddItemToOrder() {
           type: "add_item",
           payload: { order_id: orderId, product_id: productId, product_name: productName, price, quantity },
         });
-        // Update local cache
         const cached = getCachedData<Order[]>("orders_open") || [];
         const order = cached.find((o) => o.id === orderId);
         if (order) {
@@ -150,15 +153,15 @@ export function useAddItemToOrder() {
               quantity,
             });
           }
+          // Offline: simple estimation
           order.subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
-          order.tax = order.subtotal * TAX_RATE;
+          order.tax = Math.round(order.subtotal * 0.19);
           order.total = order.subtotal + order.tax;
           cacheData("orders_open", cached);
         }
         return;
       }
 
-      // Online path
       const { data: existing } = await supabase
         .from("order_items")
         .select("*")
@@ -199,7 +202,7 @@ export function useUpdateItemQty() {
           const item = order.items.find((i) => i.id === itemId);
           if (item) item.quantity = Math.max(1, quantity);
           order.subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
-          order.tax = order.subtotal * TAX_RATE;
+          order.tax = Math.round(order.subtotal * 0.19);
           order.total = order.subtotal + order.tax;
           cacheData("orders_open", cached);
         }
@@ -223,7 +226,7 @@ export function useRemoveItem() {
         if (order) {
           order.items = order.items.filter((i) => i.id !== itemId);
           order.subtotal = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
-          order.tax = order.subtotal * TAX_RATE;
+          order.tax = Math.round(order.subtotal * 0.19);
           order.total = order.subtotal + order.tax;
           cacheData("orders_open", cached);
         }
@@ -277,10 +280,53 @@ export function useCloseOrder() {
   });
 }
 
+/**
+ * Recalculate order totals based on each product's individual IVA configuration.
+ * - If iva_enabled=false: no tax on that item
+ * - If iva_included=true: price already includes IVA, extract it
+ * - If iva_included=false: IVA is added on top of price
+ */
 async function recalcOrder(orderId: string) {
   const { data: items } = await supabase.from("order_items").select("*").eq("order_id", orderId);
-  const subtotal = (items || []).reduce((s, i) => s + Number(i.price) * i.quantity, 0);
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + tax;
-  await supabase.from("orders").update({ subtotal, tax, total }).eq("id", orderId);
+  if (!items || items.length === 0) {
+    await supabase.from("orders").update({ subtotal: 0, tax: 0, total: 0 }).eq("id", orderId);
+    return;
+  }
+
+  // Get IVA info for all products in this order
+  const productIds = [...new Set(items.map((i) => i.product_id))];
+  const { data: products } = await supabase
+    .from("products")
+    .select("id, iva_enabled, iva_rate, iva_included")
+    .in("id", productIds);
+
+  const prodMap = new Map(
+    (products || []).map((p) => [p.id, { iva_enabled: p.iva_enabled, iva_rate: Number(p.iva_rate), iva_included: p.iva_included }])
+  );
+
+  let subtotal = 0;
+  let totalTax = 0;
+
+  for (const item of items) {
+    const lineTotal = Number(item.price) * item.quantity;
+    const iva = prodMap.get(item.product_id) || { iva_enabled: true, iva_rate: 19, iva_included: false };
+
+    if (!iva.iva_enabled) {
+      // No IVA
+      subtotal += lineTotal;
+    } else if (iva.iva_included) {
+      // Price includes IVA, extract base and tax
+      const base = Math.round(lineTotal / (1 + iva.iva_rate / 100));
+      const tax = lineTotal - base;
+      subtotal += base;
+      totalTax += tax;
+    } else {
+      // IVA added on top
+      subtotal += lineTotal;
+      totalTax += Math.round(lineTotal * iva.iva_rate / 100);
+    }
+  }
+
+  const total = subtotal + totalTax;
+  await supabase.from("orders").update({ subtotal, tax: totalTax, total }).eq("id", orderId);
 }

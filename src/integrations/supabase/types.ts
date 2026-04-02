@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      business_config: {
+        Row: {
+          created_at: string
+          id: string
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
       inventory_logs: {
         Row: {
           created_at: string
@@ -154,6 +178,9 @@ export type Database = {
           cost: number
           created_at: string
           id: string
+          iva_enabled: boolean
+          iva_included: boolean
+          iva_rate: number
           min_stock: number
           name: string
           price: number
@@ -166,6 +193,9 @@ export type Database = {
           cost?: number
           created_at?: string
           id?: string
+          iva_enabled?: boolean
+          iva_included?: boolean
+          iva_rate?: number
           min_stock?: number
           name: string
           price: number
@@ -178,6 +208,9 @@ export type Database = {
           cost?: number
           created_at?: string
           id?: string
+          iva_enabled?: boolean
+          iva_included?: boolean
+          iva_rate?: number
           min_stock?: number
           name?: string
           price?: number
