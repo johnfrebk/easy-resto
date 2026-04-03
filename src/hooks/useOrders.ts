@@ -276,6 +276,7 @@ export function useCloseOrder() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["orders"] });
       qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["reports"] });
     },
   });
 }

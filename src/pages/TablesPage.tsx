@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTables, useAddTable, useRemoveTable } from "@/hooks/useTables";
 import { useOpenOrders, useCreateOrder, useAddItemToOrder, useUpdateItemQty, useRemoveItem, useCloseOrder } from "@/hooks/useOrders";
 import { useProducts, type Product } from "@/hooks/useProducts";
+import { useBusinessConfig, INVOICE_FIELD_LABELS, BUSINESS_TYPE_LABELS } from "@/hooks/useBusinessConfig";
 import { Plus, Minus, Trash2, X, Printer, Check, PlusCircle, Trash, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 
 export default function TablesPage() {
   const { user, isAdmin } = useAuth();
+  const { data: businessConfig } = useBusinessConfig();
   const { data: tables = [] } = useTables();
   const { data: openOrders = [] } = useOpenOrders();
   const createOrder = useCreateOrder();
@@ -199,21 +201,27 @@ export default function TablesPage() {
           <DialogHeader><DialogTitle className="font-heading">Cuenta - Mesa {selectedTable?.table_number}</DialogTitle></DialogHeader>
           {currentOrder && (
             <div className="space-y-3">
-              <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
-                <p className="text-center font-bold text-base mb-2">Abby - RestoPOS</p>
-                <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-CO')}</p>
-                <div className="border-t border-dashed my-2" />
-                {currentOrder.items.map(i => (
-                  <div key={i.id} className="flex justify-between">
-                    <span>{i.quantity}x {i.product_name}</span>
-                    <span>{fmt(Number(i.price) * i.quantity)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-dashed my-2" />
-                <div className="flex justify-between"><span>Subtotal</span><span>{fmt(currentOrder.subtotal)}</span></div>
-                <div className="flex justify-between"><span>IVA</span><span>{fmt(currentOrder.tax)}</span></div>
-                <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{fmt(currentOrder.total)}</span></div>
-              </div>
+               <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
+                 {businessConfig && (
+                   <InvoiceHeader config={businessConfig} />
+                 )}
+                 <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-CO')}</p>
+                 <p className="text-center text-muted-foreground text-xs">Mesa {selectedTable?.table_number}</p>
+                 <div className="border-t border-dashed my-2" />
+                 {currentOrder.items.map(i => (
+                   <div key={i.id} className="flex justify-between">
+                     <span>{i.quantity}x {i.product_name}</span>
+                     <span>{fmt(Number(i.price) * i.quantity)}</span>
+                   </div>
+                 ))}
+                 <div className="border-t border-dashed my-2" />
+                 <div className="flex justify-between"><span>Subtotal</span><span>{fmt(currentOrder.subtotal)}</span></div>
+                 <div className="flex justify-between"><span>IVA</span><span>{fmt(currentOrder.tax)}</span></div>
+                 <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{fmt(currentOrder.total)}</span></div>
+                 {businessConfig?.invoice_fields.includes("invoice_message") && businessConfig.invoice_message && (
+                   <p className="text-center text-xs text-muted-foreground mt-2 italic">{businessConfig.invoice_message}</p>
+                 )}
+               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => window.print()}>
                   <Printer className="w-4 h-4 mr-1" /> Imprimir
@@ -226,6 +234,42 @@ export default function TablesPage() {
           )}
         </DialogContent>
       </Dialog>
+    </div>
+  );
+}
+
+function InvoiceHeader({ config }: { config: import("@/hooks/useBusinessConfig").BusinessConfig }) {
+  const fields = config.invoice_fields;
+  return (
+    <div className="text-center space-y-0.5 mb-2">
+      <p className="font-bold text-base">{config.business_name}</p>
+      {fields.includes("business_type") && config.business_type && (
+        <p className="text-xs text-muted-foreground">{BUSINESS_TYPE_LABELS[config.business_type]}</p>
+      )}
+      {fields.includes("nit_rut") && config.nit_rut && (
+        <p className="text-xs">NIT: {config.nit_rut}</p>
+      )}
+      {fields.includes("address") && config.address && (
+        <p className="text-xs">{config.address}</p>
+      )}
+      {fields.includes("city") && config.city && (
+        <p className="text-xs">{config.city}</p>
+      )}
+      {fields.includes("phone") && config.phone && (
+        <p className="text-xs">Tel: {config.phone}</p>
+      )}
+      {fields.includes("email") && config.email && (
+        <p className="text-xs">{config.email}</p>
+      )}
+      {fields.includes("website") && config.website && (
+        <p className="text-xs">{config.website}</p>
+      )}
+      {fields.includes("social_media") && config.social_media && (
+        <p className="text-xs">{config.social_media}</p>
+      )}
+      {fields.includes("opening_hours") && (config.opening_hours || config.closing_hours) && (
+        <p className="text-xs">Horario: {config.opening_hours}{config.closing_hours ? ` - ${config.closing_hours}` : ""}</p>
+      )}
     </div>
   );
 }
