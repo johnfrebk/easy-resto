@@ -238,6 +238,42 @@ export default function TablesPage() {
   );
 }
 
+function InvoiceHeader({ config }: { config: import("@/hooks/useBusinessConfig").BusinessConfig }) {
+  const fields = config.invoice_fields;
+  return (
+    <div className="text-center space-y-0.5 mb-2">
+      <p className="font-bold text-base">{config.business_name}</p>
+      {fields.includes("business_type") && config.business_type && (
+        <p className="text-xs text-muted-foreground">{BUSINESS_TYPE_LABELS[config.business_type]}</p>
+      )}
+      {fields.includes("nit_rut") && config.nit_rut && (
+        <p className="text-xs">NIT: {config.nit_rut}</p>
+      )}
+      {fields.includes("address") && config.address && (
+        <p className="text-xs">{config.address}</p>
+      )}
+      {fields.includes("city") && config.city && (
+        <p className="text-xs">{config.city}</p>
+      )}
+      {fields.includes("phone") && config.phone && (
+        <p className="text-xs">Tel: {config.phone}</p>
+      )}
+      {fields.includes("email") && config.email && (
+        <p className="text-xs">{config.email}</p>
+      )}
+      {fields.includes("website") && config.website && (
+        <p className="text-xs">{config.website}</p>
+      )}
+      {fields.includes("social_media") && config.social_media && (
+        <p className="text-xs">{config.social_media}</p>
+      )}
+      {fields.includes("opening_hours") && (config.opening_hours || config.closing_hours) && (
+        <p className="text-xs">Horario: {config.opening_hours}{config.closing_hours ? ` - ${config.closing_hours}` : ""}</p>
+      )}
+    </div>
+  );
+}
+
 function MenuDialog({ open, onClose, onSelect }: { open: boolean; onClose: () => void; onSelect: (p: Product) => void }) {
   const { data: products = [] } = useProducts();
   const [filter, setFilter] = useState('Todos');
