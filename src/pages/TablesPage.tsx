@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 export default function TablesPage() {
   const { user, isAdmin } = useAuth();
+  const { data: businessConfig } = useBusinessConfig();
   const { data: tables = [] } = useTables();
   const { data: openOrders = [] } = useOpenOrders();
   const createOrder = useCreateOrder();
