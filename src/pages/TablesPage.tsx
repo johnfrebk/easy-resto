@@ -201,21 +201,27 @@ export default function TablesPage() {
           <DialogHeader><DialogTitle className="font-heading">Cuenta - Mesa {selectedTable?.table_number}</DialogTitle></DialogHeader>
           {currentOrder && (
             <div className="space-y-3">
-              <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
-                <p className="text-center font-bold text-base mb-2">Abby - RestoPOS</p>
-                <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-CO')}</p>
-                <div className="border-t border-dashed my-2" />
-                {currentOrder.items.map(i => (
-                  <div key={i.id} className="flex justify-between">
-                    <span>{i.quantity}x {i.product_name}</span>
-                    <span>{fmt(Number(i.price) * i.quantity)}</span>
-                  </div>
-                ))}
-                <div className="border-t border-dashed my-2" />
-                <div className="flex justify-between"><span>Subtotal</span><span>{fmt(currentOrder.subtotal)}</span></div>
-                <div className="flex justify-between"><span>IVA</span><span>{fmt(currentOrder.tax)}</span></div>
-                <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{fmt(currentOrder.total)}</span></div>
-              </div>
+               <div className="border rounded-lg p-4 space-y-2 text-sm font-mono">
+                 {businessConfig && (
+                   <InvoiceHeader config={businessConfig} />
+                 )}
+                 <p className="text-center text-muted-foreground text-xs">{new Date().toLocaleString('es-CO')}</p>
+                 <p className="text-center text-muted-foreground text-xs">Mesa {selectedTable?.table_number}</p>
+                 <div className="border-t border-dashed my-2" />
+                 {currentOrder.items.map(i => (
+                   <div key={i.id} className="flex justify-between">
+                     <span>{i.quantity}x {i.product_name}</span>
+                     <span>{fmt(Number(i.price) * i.quantity)}</span>
+                   </div>
+                 ))}
+                 <div className="border-t border-dashed my-2" />
+                 <div className="flex justify-between"><span>Subtotal</span><span>{fmt(currentOrder.subtotal)}</span></div>
+                 <div className="flex justify-between"><span>IVA</span><span>{fmt(currentOrder.tax)}</span></div>
+                 <div className="flex justify-between font-bold text-base"><span>TOTAL</span><span>{fmt(currentOrder.total)}</span></div>
+                 {businessConfig?.invoice_fields.includes("invoice_message") && businessConfig.invoice_message && (
+                   <p className="text-center text-xs text-muted-foreground mt-2 italic">{businessConfig.invoice_message}</p>
+                 )}
+               </div>
               <div className="flex gap-2">
                 <Button variant="outline" className="flex-1" onClick={() => window.print()}>
                   <Printer className="w-4 h-4 mr-1" /> Imprimir
