@@ -8,7 +8,9 @@ import Layout from "./components/Layout";
 import TablesPage from "./pages/TablesPage";
 import MenuPage from "./pages/MenuPage";
 import InventoryPage from "./pages/InventoryPage";
+import ReportsLayout from "./pages/ReportsLayout";
 import ReportsPage from "./pages/ReportsPage";
+import DocumentReprintPage from "./pages/DocumentReprintPage";
 import UsersPage from "./pages/UsersPage";
 import BackupPage from "./pages/BackupPage";
 import SettingsPage from "./pages/SettingsPage";
@@ -50,7 +52,10 @@ const App = () => (
               <Route path="/" element={<TablesPage />} />
               <Route path="/menu" element={<AdminRoute><MenuPage /></AdminRoute>} />
               <Route path="/inventario" element={<AdminRoute><InventoryPage /></AdminRoute>} />
-              <Route path="/reportes" element={<ReportsPage />} />
+              <Route path="/reportes" element={<ReportsLayout />}>
+                <Route index element={<ReportsPage />} />
+                <Route path="reimpresion" element={<DocumentReprintPage />} />
+              </Route>
               <Route path="/usuarios" element={<AdminRoute><UsersPage /></AdminRoute>} />
               <Route path="/backup" element={<AdminRoute><BackupPage /></AdminRoute>} />
               <Route path="/configuracion" element={<AdminRoute><SettingsPage /></AdminRoute>} />
