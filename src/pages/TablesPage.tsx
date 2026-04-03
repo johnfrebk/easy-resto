@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useTables, useAddTable, useRemoveTable } from "@/hooks/useTables";
 import { useOpenOrders, useCreateOrder, useAddItemToOrder, useUpdateItemQty, useRemoveItem, useCloseOrder } from "@/hooks/useOrders";
 import { useProducts, type Product } from "@/hooks/useProducts";
+import { useBusinessConfig, INVOICE_FIELD_LABELS, BUSINESS_TYPE_LABELS } from "@/hooks/useBusinessConfig";
 import { Plus, Minus, Trash2, X, Printer, Check, PlusCircle, Trash, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
